@@ -23,10 +23,10 @@ options(scipen=999)
 ###############################
 
 gens = 260 #((12K-4K)/31y/gen)
-freq.init = c(0.2, 0.5, 0.3, 0.7, 0.8, 0.1, 0.4)
+freq.init = c(0.2, 0.5, 0.3, 0.3, 0.2, 0.1, 0.4)
 #obs.aleles = 1
 nsim = 10
-grid.size = 10
+grid.size = 3
 path= 'log_NEW'
 
 # pop.size <- seq(10,
@@ -36,11 +36,11 @@ pop.size = round(10 * ((1000000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
 # bot.size <- seq(10,
 #                 1000,
 #                 length.out = grid.size)
-#bot.size = round(10 * ((1000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
-bot.size = 10
+bot.size = round(10 * ((1000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
 
 
-system(paste0('mkdir ', path, '_',freq.init, '_', grid.size))
+
+system(paste0('mkdir ', path, '_', grid.size))
 
 #################################
 # Simulations
@@ -55,41 +55,46 @@ for (i in 1:length(pop.size)){
       # Linear growth
       #Ne.list = round(seq(bot.size[y], pop.size[i], length.out = gens))
       
-      freq.log = vector(mode = 'numeric', length = nsim)
-      alleles.log = vector(mode = 'numeric', length = nsim)
+      freq.log = matrix(NA, nrow=nsim, ncol=length(freq.init))
+      alleles.log = matrix(NA, nrow=nsim, ncol=length(freq.init))
       
       for (j in 1:nsim){
 #     grid <- obsprop <- foreach(j = 1:nsim, .combine='c', .inorder=TRUE) %dopar%
 #       {
-        freq = rbinom(1,
+        freq = rbinom(length(freq.init),
                       round(bot.size[y]),
                       freq.init)/round(bot.size[y])
         #print(freq)
+        
         for (e in 1:gens){
-          freq = rbinom(1,
+          freq = rbinom(length(freq),
                         round(pop.size[i]),
                         freq)/round(pop.size[i])
          }
-        freq.log[j] = freq
-        alleles.log[j] = rbinom(1,
-                                2,
-                                freq)
+        freq.log[j, ] = freq
+#         alleles.log[j, ] = rbinom(1,
+#                                 2,
+#                                 freq)
+        # Sample 24 chromosomes for each simulation
+        alleles.log[j, ] = rbinom(24,
+                                  1,
+                                  freq[1])
+        
         write.table(freq.log,
-                    file=paste0(path, '_',freq.init, '_', grid.size,'/freq.log_', y, '_', i, '.txt'),
+                    file=paste0(path, '_', grid.size,'/freq.log_', y, '_', i, '.txt'),
                     sep= '\t',
                     col.names = F,
                     row.names = F,
                     quote = F,
                     append = F)
-        write.table(alleles.log,
-                    file=paste0(path, '_',freq.init, '_', grid.size,'/alleles.log_', y, '_', i, '.txt'),
+       write.table(alleles.log,
+                    file=paste0(path, '_', grid.size,'/alleles.log_', y, '_', i, '.txt'),
                     sep= '\t',
                     col.names = F,
                     row.names = F,
                     quote = F,
                     append = F)
       }
-      
       cat(paste0('... pop.size ', i, ' out of ', length(pop.size), ' | bot.size ', y, ' out of ', length(bot.size), '\n'))
     }
 }
