@@ -27,16 +27,16 @@ freq.init = c(0.2, 0.5, 0.3, 0.3, 0.2, 0.1, 0.4)
 #obs.aleles = 1
 nsim = 1000
 grid.size = 30
-path= 'log_NEW'
+path= 'log'
 
 # pop.size <- seq(10,
 #                 10000,
 #                 length.out = grid.size)
-pop.size = round(10 * ((1000000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
+pop.size = round(2 * ((1000000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
 # bot.size <- seq(10,
 #                 1000,
 #                 length.out = grid.size)
-bot.size = round(10 * ((1000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
+bot.size = round(2 * ((1000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
 
 
 
@@ -124,7 +124,7 @@ matrix_2[resmat > 0.05] = resmat[resmat > 0.05]
 pal.2 <- colorRampPalette(c('yellow', 'orange', 'red'))
 pal.1 <- colorRampPalette(c('grey99', 'grey80'))
 
-pdf(paste0('resmat_',freq.init, '_', grid.size,'.pdf'), width = 10, height = 8)
+pdf(paste0('resmat_', grid.size,'.pdf'), width = 10, height = 8)
 
 par(fig=c(0,0.85,0,1), new=TRUE, mar=c(5.5,5.5,4,1)+0.1, mgp=c(4,1,0))
 
@@ -132,7 +132,7 @@ image(matrix_1, xaxt='n', yaxt='n', col=pal.1(100), zlim=c(0, 0.05))
 image(matrix_2, xaxt='n', yaxt='n', col=pal.2(100), zlim=c(0.05, 1), add=T)
 axis(side=1, at=seq(0,1, length.out=grid.size), labels=round(pop.size), las=2, cex.axis=1)
 axis(side=2, at=seq(0,1, length.out=grid.size), labels=round(bot.size), las=1, cex.axis=1)
-title(main ='MHC Exome 2', cex.main=1.5, ylab= "Population size at bottleneck", xlab= "Population size after bottleneck", 
+title(main ='Example', cex.main=1.5, ylab= "Population size at bottleneck", xlab= "Population size after bottleneck", 
       cex.lab=0.8)
 box()
 
