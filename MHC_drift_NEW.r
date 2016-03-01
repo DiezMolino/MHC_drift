@@ -25,8 +25,8 @@ options(scipen=999)
 gens = 260 #((12K-4K)/31y/gen)
 freq.init = c(0.2, 0.5, 0.3, 0.3, 0.2, 0.1, 0.4)
 #obs.aleles = 1
-nsim = 10
-grid.size = 3
+nsim = 1000
+grid.size = 30
 path= 'log_NEW'
 
 # pop.size <- seq(10,
@@ -44,10 +44,12 @@ system(paste0('mkdir ', path, '_', grid.size))
 
 #################################
 # Simulations
-###############################
+#################################
+
+resmat = matrix(NA, nrow=length(pop.size), ncol=length(bot.size))
 
 for (i in 1:length(pop.size)){
-    for (y in 1:length(bot.size)){
+    for (j in 1:length(bot.size)){
       
       # create a list of Ne values for each generation
       # EXPONENTIAL GROWTH
@@ -56,73 +58,62 @@ for (i in 1:length(pop.size)){
       #Ne.list = round(seq(bot.size[y], pop.size[i], length.out = gens))
       
       freq.log = matrix(NA, nrow=nsim, ncol=length(freq.init))
-      alleles.log = matrix(NA, nrow=nsim, ncol=length(freq.init))
       
-      for (j in 1:nsim){
+      for (s in 1:nsim){
 #     grid <- obsprop <- foreach(j = 1:nsim, .combine='c', .inorder=TRUE) %dopar%
 #       {
         freq = rbinom(length(freq.init),
-                      round(bot.size[y]),
-                      freq.init)/round(bot.size[y])
-        #print(freq)
-        
+                      round(bot.size[j]),
+                      freq.init)/round(bot.size[j])
+
         for (e in 1:gens){
           freq = rbinom(length(freq),
                         round(pop.size[i]),
                         freq)/round(pop.size[i])
+          # TO-DO skip all generations for this simulation if all frequencies are equal to 0
+          
          }
-        freq.log[j, ] = freq
-#         alleles.log[j, ] = rbinom(1,
-#                                 2,
-#                                 freq)
-        # Sample 24 chromosomes for each simulation
-        alleles.log[j, ] = rbinom(24,
-                                  1,
-                                  freq[1])
-        
-        write.table(freq.log,
-                    file=paste0(path, '_', grid.size,'/freq.log_', y, '_', i, '.txt'),
-                    sep= '\t',
-                    col.names = F,
-                    row.names = F,
-                    quote = F,
-                    append = F)
-       write.table(alleles.log,
-                    file=paste0(path, '_', grid.size,'/alleles.log_', y, '_', i, '.txt'),
-                    sep= '\t',
-                    col.names = F,
-                    row.names = F,
-                    quote = F,
-                    append = F)
+        freq.log[s, ] = freq
       }
-      cat(paste0('... pop.size ', i, ' out of ', length(pop.size), ' | bot.size ', y, ' out of ', length(bot.size), '\n'))
+      write.table(freq.log,
+                  file=paste0(path, '_', grid.size,'/freq.log_', j, '_', i, '.txt'),
+                  sep= '\t',
+                  col.names = F,
+                  row.names = F,
+                  quote = F,
+                  append = F)
+      
+      # Sample 24 chromosomes from each simulation and check polymorphism at each position
+      alleles.log = matrix(NA, nrow=nsim, ncol=ncol(freq.log))
+  
+      for (e in 1:nsim){
+        for (d in 1:ncol(freq.log)){
+          alleles.log[e,d] = length(unique(rbinom(24,1,freq.log[e,d]))) == 2
+        }
+      }
+      write.table(alleles.log,
+                  file=paste0(path, '_', grid.size,'/alleles.log_', j, '_', i, '.txt'),
+                  sep= '\t',
+                  col.names = F,
+                  row.names = F,
+                  quote = F,
+                  append = F)
+      
+      resmat[i,j] = sum(apply(alleles.log, 1, sum) >= 5)/nsim
+      cat(paste0('... pop.size ', i, ' out of ', length(pop.size), ' | bot.size ', j, ' out of ', length(bot.size), '\n'))
     }
 }
-
-
-#################################
-# Plots
-###############################
-# plot prob. position not being fixed for each combination of pop.size and bot.size
-
-resmat <- matrix(0, ncol = grid.size, nrow = grid.size)
-for (i in 1:length(pop.size)){
-  for (j in 1:length(bot.size)){
-    alleles.log <- read.delim(paste0(path, '_',freq.init, '_', grid.size,'/alleles.log_', j, '_', i, '.txt'),
-                              header=FALSE)
-    prob.nofix <- sum(alleles.log==1)/nsim
-    resmat[i,j] <- 1-2*abs(0.5-prob.nofix)
-  }
-}
 write.table(resmat,
-            file=paste0('resmat_',freq.init, '_', grid.size,'.txt'),
+            file=paste0('resmat_', grid.size,'.txt'),
             sep= '\t',
             col.names = F,
             row.names = F,
             quote = F,
             append = F)
 
-######## plot resmat
+#################################
+# Plot
+###############################
 
 resmat = as.matrix(resmat)
 matrix_1 = matrix(NA, nrow=grid.size, ncol=grid.size)
@@ -141,7 +132,7 @@ image(matrix_1, xaxt='n', yaxt='n', col=pal.1(100), zlim=c(0, 0.05))
 image(matrix_2, xaxt='n', yaxt='n', col=pal.2(100), zlim=c(0.05, 1), add=T)
 axis(side=1, at=seq(0,1, length.out=grid.size), labels=round(pop.size), las=2, cex.axis=1)
 axis(side=2, at=seq(0,1, length.out=grid.size), labels=round(bot.size), las=1, cex.axis=1)
-title(main =paste0('Initial frequency = ', freq.init), cex.main=1.5, ylab= "Population size at bottleneck", xlab= "Population size after bottleneck", 
+title(main ='MHC Exome 2', cex.main=1.5, ylab= "Population size at bottleneck", xlab= "Population size after bottleneck", 
       cex.lab=0.8)
 box()
 
@@ -153,7 +144,7 @@ image(t(as.matrix(100:1)), col=c(pal.1(19), pal.2(80)), xlab='', ylab='', xaxt='
 axis(2, cex.axis=0.9, las=2, at=seq(0, 1, length.out = 26),
      labels=c('1.0','','0.9', '','0.8', '','0.7', '','0.6','', '0.5','', '0.4', '','0.3','',
               '0.2', '','0.1','', '0.05', '', '0.03', '', '0.01', ''))
-mtext(text='Probability of site being polymorphic', side=4, line=1)
+mtext(text='Probability of observing 5 or more polymorphisms', side=4, line=1)
 abline(a=0.802, b=0.0, lwd=1)
 box()
 
@@ -173,6 +164,15 @@ dev.off()
 
 ######### JUNK
 
+# resmat <- matrix(0, ncol = grid.size, nrow = grid.size)
+# for (i in 1:length(pop.size)){
+#   for (j in 1:length(bot.size)){
+#     alleles.log <- read.delim(paste0(path, '_',freq.init, '_', grid.size,'/alleles.log_', j, '_', i, '.txt'),
+#                               header=FALSE)
+#     prob.nofix <- sum(alleles.log==1)/nsim
+#     resmat[i,j] <- 1-2*abs(0.5-prob.nofix)
+#   }
+# }
 
 
 # 
