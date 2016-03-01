@@ -32,13 +32,11 @@ path= 'log'
 # pop.size <- seq(10,
 #                 10000,
 #                 length.out = grid.size)
-pop.size = round(2 * ((1000000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
+pop.size = round(4 * ((1000000/4) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
 # bot.size <- seq(10,
 #                 1000,
 #                 length.out = grid.size)
-bot.size = round(2 * ((1000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
-
-
+bot.size = round(4 * ((1000/4) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
 
 system(paste0('mkdir ', path, '_', grid.size))
 
@@ -114,6 +112,28 @@ write.table(resmat,
 #################################
 # Plot
 ###############################
+
+# ## Black, blue, yellow, red
+# resmat = as.matrix(resmat)
+# matrix_0 = matrix(NA, nrow=grid.size, ncol=grid.size)
+# matrix_0[resmat <= 0.001] = resmat[resmat <= 0.001]
+# matrix_1 = matrix(NA, nrow=grid.size, ncol=grid.size)
+# matrix_1[resmat <= 0.05 & resmat > 0.001] = resmat[resmat <= 0.05 & resmat > 0.001]
+# matrix_2 = matrix(NA, nrow=grid.size, ncol=grid.size)
+# matrix_2[resmat > 0.05] = resmat[resmat > 0.05]
+# 
+# pal.2 <- colorRampPalette(c('yellow', 'orange', 'red', 'darkred'))
+# #pal.1 <- colorRampPalette(c('grey99', 'grey80'))
+# pal.1 <- colorRampPalette(c('darkblue', 'blue'))
+# #pal.1 <- colorRampPalette(c('black'))
+# 
+# pdf(paste0('resmat_', grid.size,'.pdf'), width = 10, height = 8)
+# 
+# par(fig=c(0,0.85,0,1), new=TRUE, mar=c(5.5,5.5,4,1)+0.1, mgp=c(4,1,0))
+# 
+# image(matrix_0, xaxt='n', yaxt='n', col='black', zlim=c(0, 0.001))
+# image(matrix_1, xaxt='n', yaxt='n', col=pal.1(100), zlim=c(0.001, 0.05), add=T)
+# image(matrix_2, xaxt='n', yaxt='n', col=pal.2(100), zlim=c(0.05, 1), add=T)
 
 resmat = as.matrix(resmat)
 matrix_1 = matrix(NA, nrow=grid.size, ncol=grid.size)
