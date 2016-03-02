@@ -6,9 +6,9 @@ date()
 
 options(scipen=999)
 
-grid.size = 10
-pop.size = round(10 * ((1000000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
-bot.size = round(10 * ((1000/10) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
+grid.size = 30
+pop.size = round(4 * ((1000000/4) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
+bot.size = round(4 * ((1000/4) ^ (1/(grid.size-1))) ^ (0:(grid.size-1)))
 anc.size = 100000
 nsims = 1000
 
@@ -152,7 +152,7 @@ write.table(parfile, file = paste0(files, '_', i, '_', j, '.par'), sep='\t',
     cat(paste0('... simulating genealogies\n'))
 
     # launch fastsimcoal
-    waste <- system(paste0(fsc, ' -i ', paste0(files, '_', i, '_', j, '.par'), ' -n', nsims, ' -c 8 -B 12'),
+    system(paste0(fsc, ' -i ', paste0(files, '_', i, '_', j, '.par'), ' -n', nsims, ' -c 8 -B 12'),
            intern = T)
     system(paste0('mv ', files, '_', i, '_', j, ' ', files))
     
@@ -170,11 +170,11 @@ write.table(parfile, file = paste0(files, '_', i, '_', j, '.par'), sep='\t',
     cat(paste0('... sumarizing and analyzing output\n'))
     
     # execute ArlSumStat
-    system(paste0('cp arlsumstat/* ', files, '/', files, '_', i, '_', j))
+    system(paste0('cp arlsumstat/* ', files, '/', files, '_', i, '_', j), intern = T)
     setwd(paste0(files, '/', files, '_', i, '_', j))
-    waste <- system(paste0('./', arlsumstats, ' ./', files, '_1_1.arp Stats_',
+    system(paste0('./', arlsumstats, ' ./', files, '_1_1.arp Stats_',
                   files, '_', i, '_', j, '.txt 0 2 run_silent'), intern = T)
-    waste <- system(paste0('for file in *.arp; do ./', arlsumstats, ' ./$file Stats_',
+    system(paste0('for file in *.arp; do ./', arlsumstats, ' ./$file Stats_',
                   files, '_', i, '_', j, '.txt 1 0 run_silent; echo "Processing file $file"; done'),
            intern = T)
     system('rm -r *.res')
